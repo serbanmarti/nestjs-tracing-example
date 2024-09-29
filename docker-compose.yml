@@ -1,0 +1,37 @@
+name: nestjs-tracing-example
+
+services:
+  api:
+    container_name: api
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    env_file:
+      - .env
+    environment:
+      TRACING_AGENT_URL: "http://jaeger:4317"
+      TRACING_SERVICE_NAME: "x-api"
+    ports:
+      - "3000:3000"
+    networks:
+      - main
+    depends_on:
+      jaeger:
+        condition: service_started
+
+  jaeger:
+    container_name: jaeger
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "16686:16686"
+    environment:
+      - OTEL_TRACES_SAMPLER=always_off
+      - LOG_LEVEL=debug
+    networks:
+      - main
+
+networks:
+  main:
+    driver: bridge
